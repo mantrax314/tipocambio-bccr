@@ -58,7 +58,6 @@ func (suite *serviceSuite) SetupTest() {
 </Datos_de_INGC011_CAT_INDICADORECONOMIC>`
 	suite.TestGetIndicadorNumValorErrorXML = `<?xml version="1.0" encoding="utf-8"?>
 <string xmlns="http://ws.sdde.bccr.fi.cr">Ocurrió un error: Formato incorrecto en la fecha de inicio. / An error occurred: The begin date format is not correct.</string>`
-
 }
 
 func TestBCCRSvc(t *testing.T) {
