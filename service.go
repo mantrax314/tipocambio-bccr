@@ -66,7 +66,11 @@ func (svc BCCRSvc) GetCurrentEuroPrice() (float64, error) {
 
 // getIndicadorNumValor connects to indicadores service to pull response value
 func (svc BCCRSvc) getIndicadorNumValor(indicadorCode int) (float64, error) {
-	currentDay := time.Now().Format("02/01/2006")
+	location, err := time.LoadLocation("America/Costa_Rica")
+	if err != nil {
+		return 0, err
+	}
+	currentDay := time.Now().In(location).Format("02/01/2006")
 	getParams := fmt.Sprintf("?Indicador=%d&FechaInicio=%s&FechaFinal=%s&Nombre=%s&SubNiveles=N&CorreoElectronico=%s&Token=%s",
 		indicadorCode,
 		nurl.QueryEscape(currentDay),
@@ -83,7 +87,10 @@ func (svc BCCRSvc) getIndicadorNumValor(indicadorCode int) (float64, error) {
 		return 0, err
 	}
 	res, err := client.Do(req)
-	if err != nil {
+	if err != nil || (res != nil && res.StatusCode != http.StatusOK) {
+		if res.StatusCode != http.StatusOK {
+			return 0, fmt.Errorf("error http status %d", res.StatusCode)
+		}
 		return 0, err
 	}
 	defer res.Body.Close()
@@ -92,7 +99,11 @@ func (svc BCCRSvc) getIndicadorNumValor(indicadorCode int) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	resSt := fixXML(string(body))
+	stXML := string(body)
+	if strings.Contains(stXML, "error") {
+		return 0, fmt.Errorf(stXML)
+	}
+	resSt := fixXML(stXML)
 	var ieco indicadorEcoXML
 	err = xml.Unmarshal([]byte(resSt), &ieco)
 	if err != nil {
